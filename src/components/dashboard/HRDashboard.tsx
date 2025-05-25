@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { Plus, Users, Clock, TrendingUp, CheckCircle } from 'lucide-react';
+import { Plus, Users, Clock, TrendingUp, CheckCircle, Database } from 'lucide-react';
 import TaskAssignmentDialog from '@/components/dialogs/TaskAssignmentDialog';
+import DatabaseView from '@/components/database/DatabaseView';
 
 interface HRDashboardProps {
   user: any;
@@ -119,12 +119,13 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
       </div>
 
       <Tabs defaultValue="tasks" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="assigned-tasks">Assigned Tasks</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
           <TabsTrigger value="leaves">Leave Requests</TabsTrigger>
+          <TabsTrigger value="database">Database</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-4">
@@ -288,6 +289,10 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="database" className="space-y-4">
+          <DatabaseView />
         </TabsContent>
       </Tabs>
 
