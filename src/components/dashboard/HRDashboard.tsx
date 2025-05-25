@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { Plus, Users, Clock, TrendingUp, CheckCircle } from 'lucide-react';
+import TaskAssignmentDialog from '@/components/dialogs/TaskAssignmentDialog';
 
 interface HRDashboardProps {
   user: any;
@@ -19,6 +20,9 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
     { id: 3, title: 'API Development', department: 'Backend', progress: 90, assignedTo: 'Direct Assignment' },
     { id: 4, title: 'Cloud Migration', department: 'Cloud + DB', progress: 45, assignedTo: 'Team Lead' },
   ]);
+
+  const [assignedTasks, setAssignedTasks] = useState([]);
+  const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
 
   const departmentData = [
     { name: 'App Dev', tasks: 8, completed: 6 },
@@ -53,6 +57,11 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
     return colors[department as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
+  const handleTaskAssigned = (newTask: any) => {
+    setAssignedTasks(prev => [...prev, newTask]);
+    console.log('New task assigned:', newTask);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -60,7 +69,10 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
           <h1 className="text-3xl font-bold">HR Dashboard</h1>
           <p className="text-gray-600">Welcome back, {user.name}</p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button 
+          className="flex items-center gap-2"
+          onClick={() => setIsTaskDialogOpen(true)}
+        >
           <Plus size={16} />
           Assign New Task
         </Button>
@@ -107,8 +119,9 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
       </div>
 
       <Tabs defaultValue="tasks" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
+          <TabsTrigger value="assigned-tasks">Assigned Tasks</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
           <TabsTrigger value="leaves">Leave Requests</TabsTrigger>
@@ -141,6 +154,45 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="assigned-tasks" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recently Assigned Tasks</CardTitle>
+              <CardDescription>Tasks you've assigned to team leads</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {assignedTasks.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No tasks assigned yet.</p>
+                  <p className="text-sm">Click "Assign New Task" to get started.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {assignedTasks.map((task: any) => (
+                    <div key={task.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold">{task.title}</h3>
+                          <Badge className={getDepartmentColor(task.department)}>
+                            {task.department}
+                          </Badge>
+                          <Badge variant="outline">{task.status}</Badge>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{task.description}</p>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span>Assigned to: {task.assignedTo}</span>
+                          {task.deadline && <span>Due: {task.deadline}</span>}
+                          <span>Created: {new Date(task.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -238,6 +290,12 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <TaskAssignmentDialog
+        open={isTaskDialogOpen}
+        onOpenChange={setIsTaskDialogOpen}
+        onTaskAssigned={handleTaskAssigned}
+      />
     </div>
   );
 };
