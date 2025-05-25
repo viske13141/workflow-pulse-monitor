@@ -1,12 +1,46 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from 'react';
+import LoginForm from '@/components/auth/LoginForm';
+import HRDashboard from '@/components/dashboard/HRDashboard';
+import TeamLeadDashboard from '@/components/dashboard/TeamLeadDashboard';
+import EmployeeDashboard from '@/components/dashboard/EmployeeDashboard';
+import Header from '@/components/layout/Header';
 
 const Index = () => {
+  const [user, setUser] = useState<any>(null);
+
+  const handleLogin = (userData: any) => {
+    setUser(userData);
+    console.log('User logged in:', userData);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+  };
+
+  if (!user) {
+    return <LoginForm onLogin={handleLogin} />;
+  }
+
+  const renderDashboard = () => {
+    switch (user.role) {
+      case 'HR':
+        return <HRDashboard user={user} />;
+      case 'Team Lead':
+        return <TeamLeadDashboard user={user} />;
+      case 'Employee':
+        return <EmployeeDashboard user={user} />;
+      default:
+        return <div>Unknown role</div>;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header user={user} onLogout={handleLogout} />
+      <main className="max-w-7xl mx-auto">
+        {renderDashboard()}
+      </main>
     </div>
   );
 };
