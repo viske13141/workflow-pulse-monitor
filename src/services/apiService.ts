@@ -74,7 +74,9 @@ export const apiService = {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(logData)
+        body: JSON.stringify({
+          data: logData
+        })
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -95,7 +97,9 @@ export const apiService = {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(taskData)
+        body: JSON.stringify({
+          data: taskData
+        })
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -130,6 +134,29 @@ export const apiService = {
       console.log('Task progress updated successfully');
     } catch (error) {
       console.error('Error updating task progress:', error);
+      throw error;
+    }
+  },
+
+  // Post leave request
+  async postLeaveRequest(leaveData: Partial<EmployeeDailyLog>): Promise<void> {
+    try {
+      const response = await fetch('https://sheetdb.io/api/v1/m7kpkj3860v36', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          data: leaveData
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      console.log('Leave request posted successfully');
+    } catch (error) {
+      console.error('Error posting leave request:', error);
       throw error;
     }
   }

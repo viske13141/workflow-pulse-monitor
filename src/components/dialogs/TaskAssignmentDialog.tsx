@@ -11,6 +11,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { apiService } from '@/services/apiService';
 
 interface TaskAssignmentDialogProps {
   open: boolean;
@@ -35,9 +36,10 @@ const TaskAssignmentDialog: React.FC<TaskAssignmentDialogProps> = ({
   const [taskDescription, setTaskDescription] = useState('');
   const [selectedTeamLead, setSelectedTeamLead] = useState('');
   const [deadline, setDeadline] = useState<Date>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!taskTitle || !taskDescription || !selectedTeamLead) {
       toast({
         title: "Error",
@@ -47,32 +49,54 @@ const TaskAssignmentDialog: React.FC<TaskAssignmentDialogProps> = ({
       return;
     }
 
-    const selectedLead = teamLeads.find(lead => lead.name === selectedTeamLead);
-    const newTask = {
-      id: Date.now(),
-      title: taskTitle,
-      description: taskDescription,
-      assignedTo: selectedLead?.name,
-      department: selectedLead?.department,
-      deadline: deadline ? format(deadline, 'yyyy-MM-dd') : null,
-      status: 'Assigned',
-      assignedBy: 'HR',
-      createdAt: new Date().toISOString(),
-    };
-
-    onTaskAssigned(newTask);
+    setIsSubmitting(true);
     
-    toast({
-      title: "Task Assigned",
-      description: `Task "${taskTitle}" has been assigned to ${selectedLead?.name} (${selectedLead?.department})`,
-    });
+    try {
+      const selectedLead = teamLeads.find(lead => lead.name === selectedTeamLead);
+      const taskId = 'TSK-' + Date.now();
+      
+      const newTask = {
+        'Task ID': taskId,
+        'Parent Task (from HR)': taskTitle,
+        'Assigned To': selectedLead?.name || '',
+        Email: selectedLead?.email || '',
+        Department: selectedLead?.department || '',
+        'Assigned By': 'HR',
+        'Assigned Date': format(new Date(), 'yyyy-MM-dd'),
+        Deadline: deadline ? format(deadline, 'yyyy-MM-dd') : '',
+        'Task Title': taskTitle,
+        Description: taskDescription,
+        'Progress (%)': '0',
+        Status: 'Assigned',
+        Comments: ''
+      };
 
-    // Reset form
-    setTaskTitle('');
-    setTaskDescription('');
-    setSelectedTeamLead('');
-    setDeadline(undefined);
-    onOpenChange(false);
+      // Post to API
+      await apiService.postTask(newTask);
+
+      onTaskAssigned(newTask);
+      
+      toast({
+        title: "Task Assigned",
+        description: `Task "${taskTitle}" has been assigned to ${selectedLead?.name} (${selectedLead?.department})`,
+      });
+
+      // Reset form
+      setTaskTitle('');
+      setTaskDescription('');
+      setSelectedTeamLead('');
+      setDeadline(undefined);
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error assigning task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to assign task. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -153,8 +177,8 @@ const TaskAssignmentDialog: React.FC<TaskAssignmentDialogProps> = ({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>
-            Assign Task
+          <Button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Assigning...' : 'Assign Task'}
           </Button>
         </DialogFooter>
       </DialogContent>
