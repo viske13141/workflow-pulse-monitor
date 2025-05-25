@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,7 +54,7 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
   const leaveRequests = allLogs?.filter(log => 
     log.Department === user.department && 
     log['Leave Applied?'] === 'Yes' &&
-    log['Leave Status'] === 'Pending'
+    log['Team Lead Approval'] === 'Pending'
   ) || [];
 
   const getTeamMembers = () => {
@@ -78,6 +77,54 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
   const handleSplitTask = (task: any) => {
     setSelectedTask(task);
     setIsTaskSplittingOpen(true);
+  };
+
+  const handleForwardToHR = async (leaveRequest: any) => {
+    try {
+      await apiService.updateLeaveStatus(
+        leaveRequest['Employee Name'], 
+        leaveRequest.Date, 
+        'Approved', 
+        'Forwarded to HR'
+      );
+      
+      refetchLogs();
+      
+      toast({
+        title: "Leave Forwarded",
+        description: `Leave request for ${leaveRequest['Employee Name']} has been forwarded to HR`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to forward leave request. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRejectLeave = async (leaveRequest: any) => {
+    try {
+      await apiService.updateLeaveStatus(
+        leaveRequest['Employee Name'], 
+        leaveRequest.Date, 
+        'Rejected', 
+        'Rejected'
+      );
+      
+      refetchLogs();
+      
+      toast({
+        title: "Leave Rejected",
+        description: `Leave request for ${leaveRequest['Employee Name']} has been rejected`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reject leave request. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleRefresh = () => {
@@ -299,10 +346,22 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
                       <p className="text-sm text-gray-600">
                         {leave.Reason} • {leave['Leave Dates']}
                       </p>
+                      <p className="text-sm text-gray-500">Applied on: {leave.Date}</p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">Reject</Button>
-                      <Button size="sm">Forward to HR</Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleRejectLeave(leave)}
+                      >
+                        Reject
+                      </Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => handleForwardToHR(leave)}
+                      >
+                        Forward to HR
+                      </Button>
                     </div>
                   </div>
                 ))}

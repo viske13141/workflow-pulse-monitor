@@ -159,5 +159,40 @@ export const apiService = {
       console.error('Error posting leave request:', error);
       throw error;
     }
+  },
+
+  // Update leave status (for team lead approval)
+  async updateLeaveStatus(employeeName: string, leaveDate: string, teamLeadApproval: string, leaveStatus: string): Promise<void> {
+    try {
+      const updateData = {
+        'Team Lead Approval': teamLeadApproval,
+        'Leave Status': leaveStatus
+      };
+      
+      // Note: This is a simplified approach - in a real system you'd want a better way to identify specific records
+      const response = await fetch('https://sheetdb.io/api/v1/m7kpkj3860v36', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          data: {
+            Date: leaveDate,
+            'Employee Name': employeeName,
+            'Team Lead Approval': teamLeadApproval,
+            'Leave Status': leaveStatus,
+            Status: leaveStatus === 'Forwarded to HR' ? 'Pending HR Approval' : leaveStatus
+          }
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      console.log('Leave status updated successfully');
+    } catch (error) {
+      console.error('Error updating leave status:', error);
+      throw error;
+    }
   }
 };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,11 +7,12 @@ import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle, Clock, Calendar, LogIn, LogOut, RefreshCw } from 'lucide-react';
+import { CheckCircle, Clock, Calendar, LogIn, LogOut, RefreshCw, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { apiService } from '@/services/apiService';
 import { format } from 'date-fns';
+import TaskUpdateDialog from '@/components/dialogs/TaskUpdateDialog';
 
 interface EmployeeDashboardProps {
   user: any;
@@ -25,6 +25,8 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
   const [leaveDays, setLeaveDays] = useState('');
   const [leaveFromDate, setLeaveFromDate] = useState('');
   const [leaveToDate, setLeaveToDate] = useState('');
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [isTaskUpdateOpen, setIsTaskUpdateOpen] = useState(false);
   
   const { toast } = useToast();
 
@@ -56,6 +58,11 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
     log['Employee Name'] === user.name && 
     log['Leave Applied?'] === 'Yes'
   ) || [];
+
+  const handleStartTask = (task: any) => {
+    setSelectedTask(task);
+    setIsTaskUpdateOpen(true);
+  };
 
   const handleProgressUpdate = async (taskId: string, newProgress: number[]) => {
     try {
@@ -133,14 +140,6 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
         const checkOutTime = new Date(`${today} ${timeString}`);
         const totalHours = ((checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60 * 60)).toFixed(2);
 
-        const updateData = {
-          'Check-Out': timeString,
-          'Total Hours': totalHours,
-          Status: 'Checked Out'
-        };
-
-        // Note: This would need a proper update endpoint for the specific log entry
-        // For now, we'll post a new entry
         const logData = {
           ...todayLog,
           'Check-Out': timeString,
@@ -329,9 +328,19 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
                             <p className="text-sm text-gray-600">Due: {task.Deadline}</p>
                           )}
                         </div>
-                        <Badge className={getStatusColor(task.Status)}>
-                          {task.Status}
-                        </Badge>
+                        <div className="flex gap-2 items-center">
+                          <Badge className={getStatusColor(task.Status)}>
+                            {task.Status}
+                          </Badge>
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleStartTask(task)}
+                            className="flex items-center gap-2"
+                          >
+                            <Play size={14} />
+                            Start Task
+                          </Button>
+                        </div>
                       </div>
                       
                       <div className="space-y-2">
@@ -339,13 +348,7 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
                           <span className="text-sm font-medium">Progress</span>
                           <span className="text-sm">{task['Progress (%)']}%</span>
                         </div>
-                        <Slider
-                          value={[parseInt(task['Progress (%)']) || 0]}
-                          onValueChange={(value) => handleProgressUpdate(task['Task ID'], value)}
-                          max={100}
-                          step={5}
-                          className="w-full"
-                        />
+                        <Progress value={parseInt(task['Progress (%)']) || 0} className="w-full" />
                       </div>
                     </div>
                   ))}
@@ -478,6 +481,16 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <TaskUpdateDialog
+        open={isTaskUpdateOpen}
+        onOpenChange={setIsTaskUpdateOpen}
+        task={selectedTask}
+        onTaskUpdated={() => {
+          refetchTasks();
+          setSelectedTask(null);
+        }}
+      />
     </div>
   );
 };
