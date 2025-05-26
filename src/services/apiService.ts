@@ -161,15 +161,19 @@ export const apiService = {
     }
   },
 
-  // Update leave status (for team lead approval)
+  // Update leave status
   async updateLeaveStatus(employeeName: string, leaveDate: string, teamLeadApproval: string, leaveStatus: string): Promise<void> {
     try {
       const updateData = {
+        Date: leaveDate,
+        'Employee Name': employeeName,
         'Team Lead Approval': teamLeadApproval,
-        'Leave Status': leaveStatus
+        'Leave Status': leaveStatus,
+        'HR Approval': leaveStatus === 'Forwarded to HR' ? 'Pending' : (leaveStatus === 'Rejected' ? 'Not Required' : 'Pending'),
+        Status: leaveStatus === 'Forwarded to HR' ? 'Pending HR Approval' : leaveStatus,
+        'Leave Applied?': 'Yes'
       };
       
-      // Note: This is a simplified approach - in a real system you'd want a better way to identify specific records
       const response = await fetch('https://sheetdb.io/api/v1/m7kpkj3860v36', {
         method: 'POST',
         headers: {
@@ -177,13 +181,7 @@ export const apiService = {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          data: {
-            Date: leaveDate,
-            'Employee Name': employeeName,
-            'Team Lead Approval': teamLeadApproval,
-            'Leave Status': leaveStatus,
-            Status: leaveStatus === 'Forwarded to HR' ? 'Pending HR Approval' : leaveStatus
-          }
+          data: updateData
         })
       });
       if (!response.ok) {
@@ -192,6 +190,38 @@ export const apiService = {
       console.log('Leave status updated successfully');
     } catch (error) {
       console.error('Error updating leave status:', error);
+      throw error;
+    }
+  },
+
+  // Update HR leave approval
+  async updateHRLeaveApproval(employeeName: string, leaveDate: string, hrApproval: string, finalStatus: string): Promise<void> {
+    try {
+      const updateData = {
+        Date: leaveDate,
+        'Employee Name': employeeName,
+        'HR Approval': hrApproval,
+        'Leave Status': finalStatus,
+        Status: finalStatus,
+        'Leave Applied?': 'Yes'
+      };
+      
+      const response = await fetch('https://sheetdb.io/api/v1/m7kpkj3860v36', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          data: updateData
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      console.log('HR leave approval updated successfully');
+    } catch (error) {
+      console.error('Error updating HR leave approval:', error);
       throw error;
     }
   }

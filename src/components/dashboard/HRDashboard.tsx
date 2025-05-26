@@ -118,7 +118,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
 
   const handleApproveLeave = async (leaveRequest: any) => {
     try {
-      await apiService.updateLeaveStatus(
+      await apiService.updateHRLeaveApproval(
         leaveRequest['Employee Name'], 
         leaveRequest.Date, 
         'Approved', 
@@ -142,7 +142,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
 
   const handleRejectLeave = async (leaveRequest: any) => {
     try {
-      await apiService.updateLeaveStatus(
+      await apiService.updateHRLeaveApproval(
         leaveRequest['Employee Name'], 
         leaveRequest.Date, 
         'Rejected', 
@@ -266,7 +266,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
           <Card>
             <CardHeader>
               <CardTitle>HR Assigned Tasks</CardTitle>
-              <CardDescription>Tasks assigned by HR to team leads</CardDescription>
+              <CardDescription>Tasks assigned by HR to team leads with dates and titles</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

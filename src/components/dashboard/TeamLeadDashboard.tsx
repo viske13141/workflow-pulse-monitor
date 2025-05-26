@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,7 +61,7 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
   const getTeamMembers = () => {
     const teams = {
       'App Development': ['Harika', 'Shanmuk', 'Krishna'],
-      'Frontend': ['Chaitu', 'Srusti', 'Pranavika'],
+      'Frontend': ['Chaitu', 'Srusti', 'Pranavika', 'Sreenika', 'Harshitha Priya'],
       'Backend': ['Sowmya', 'Ravi', 'Arjun'],
       'Cloud + DB': ['Mithun', 'Srneeka'],
       'Social Media': ['Haryank', 'David', 'Saketh', 'Munna', 'Vamsi'],
@@ -91,7 +92,7 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
       refetchLogs();
       
       toast({
-        title: "Leave Forwarded",
+        title: "Done",
         description: `Leave request for ${leaveRequest['Employee Name']} has been forwarded to HR`,
       });
     } catch (error) {
