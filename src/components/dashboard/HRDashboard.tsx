@@ -30,6 +30,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [searchTermLogs, setSearchTermLogs] = useState('');
   const [searchTermTasks, setSearchTermTasks] = useState('');
+  const [processedLeaves, setProcessedLeaves] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   const {
@@ -117,6 +118,8 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
   };
 
   const handleApproveLeave = async (leaveRequest: any) => {
+    const leaveKey = `${leaveRequest['Employee Name']}-${leaveRequest.Date}`;
+    
     try {
       await apiService.updateHRLeaveApproval(
         leaveRequest['Employee Name'], 
@@ -125,6 +128,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
         'Approved'
       );
       
+      setProcessedLeaves(prev => new Set(prev.add(leaveKey)));
       refetchLogs();
       
       toast({
@@ -141,6 +145,8 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
   };
 
   const handleRejectLeave = async (leaveRequest: any) => {
+    const leaveKey = `${leaveRequest['Employee Name']}-${leaveRequest.Date}`;
+    
     try {
       await apiService.updateHRLeaveApproval(
         leaveRequest['Employee Name'], 
@@ -149,6 +155,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
         'Rejected'
       );
       
+      setProcessedLeaves(prev => new Set(prev.add(leaveKey)));
       refetchLogs();
       
       toast({
@@ -162,6 +169,30 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
         variant: "destructive",
       });
     }
+  };
+
+  const getLeaveButtonText = (leave: any, action: 'approve' | 'reject') => {
+    const leaveKey = `${leave['Employee Name']}-${leave.Date}`;
+    
+    if (processedLeaves.has(leaveKey)) {
+      return action === 'approve' ? 'Approved' : 'Rejected';
+    }
+    
+    if (leave['HR Approval'] === 'Approved') {
+      return 'Approved';
+    }
+    
+    if (leave['HR Approval'] === 'Rejected') {
+      return 'Rejected';
+    }
+    
+    return action === 'approve' ? 'Approve' : 'Reject';
+  };
+
+  const isLeaveButtonDisabled = (leave: any) => {
+    const leaveKey = `${leave['Employee Name']}-${leave.Date}`;
+    return processedLeaves.has(leaveKey) || 
+           (leave['HR Approval'] !== 'Pending' && leave['Leave Status'] !== 'Forwarded to HR');
   };
 
   return (
@@ -391,34 +422,45 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ user }) => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {hrLeaveRequests.map((leave, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">{leave['Employee Name']}</p>
-                      <p className="text-sm text-gray-600">
-                        {leave.Department} • {leave.Reason} • {leave['Leave Dates']}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Team Lead Status: {leave['Team Lead Approval']}
-                      </p>
+                {hrLeaveRequests.map((leave, index) => {
+                  const isProcessed = isLeaveButtonDisabled(leave);
+                  
+                  return (
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <p className="font-semibold">{leave['Employee Name']}</p>
+                        <p className="text-sm text-gray-600">
+                          {leave.Department} • {leave.Reason} • {leave['Leave Dates']}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Team Lead Status: {leave['Team Lead Approval']}
+                        </p>
+                        {leave['HR Approval'] !== 'Pending' && (
+                          <Badge variant="outline" className="mt-1">
+                            {leave['Leave Status']}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleRejectLeave(leave)}
+                          disabled={isProcessed}
+                        >
+                          {getLeaveButtonText(leave, 'reject')}
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={() => handleApproveLeave(leave)}
+                          disabled={isProcessed}
+                        >
+                          {getLeaveButtonText(leave, 'approve')}
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleRejectLeave(leave)}
-                      >
-                        Reject
-                      </Button>
-                      <Button 
-                        size="sm"
-                        onClick={() => handleApproveLeave(leave)}
-                      >
-                        Approve
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {hrLeaveRequests.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     No pending leave requests for HR approval.

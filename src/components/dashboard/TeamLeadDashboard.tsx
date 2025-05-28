@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,7 @@ interface TeamLeadDashboardProps {
 const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [isTaskSplittingOpen, setIsTaskSplittingOpen] = useState(false);
+  const [processedLeaves, setProcessedLeaves] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   const {
@@ -62,7 +62,7 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
     const teams = {
       'App Development': ['Harika', 'Shanmuk', 'Krishna'],
       'Frontend': ['Chaitu', 'Srusti', 'Pranavika', 'Sreenika', 'Harshitha Priya'],
-      'Backend': ['Sowmya', 'Ravi', 'Arjun'],
+      'Backend': ['Sowmya', 'Rahil', 'Karthik', 'Mounika', 'Adharsh'],
       'Cloud + DB': ['Mithun', 'Srneeka'],
       'Social Media': ['Haryank', 'David', 'Saketh', 'Munna', 'Vamsi'],
     };
@@ -81,6 +81,8 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
   };
 
   const handleForwardToHR = async (leaveRequest: any) => {
+    const leaveKey = `${leaveRequest['Employee Name']}-${leaveRequest.Date}`;
+    
     try {
       await apiService.updateLeaveStatus(
         leaveRequest['Employee Name'], 
@@ -89,10 +91,11 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
         'Forwarded to HR'
       );
       
+      setProcessedLeaves(prev => new Set(prev.add(leaveKey)));
       refetchLogs();
       
       toast({
-        title: "Done",
+        title: "Forwarded",
         description: `Leave request for ${leaveRequest['Employee Name']} has been forwarded to HR`,
       });
     } catch (error) {
@@ -105,6 +108,8 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
   };
 
   const handleRejectLeave = async (leaveRequest: any) => {
+    const leaveKey = `${leaveRequest['Employee Name']}-${leaveRequest.Date}`;
+    
     try {
       await apiService.updateLeaveStatus(
         leaveRequest['Employee Name'], 
@@ -113,6 +118,7 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
         'Rejected'
       );
       
+      setProcessedLeaves(prev => new Set(prev.add(leaveKey)));
       refetchLogs();
       
       toast({
@@ -135,6 +141,31 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
       title: "Data Refreshed",
       description: "Dashboard data has been updated.",
     });
+  };
+
+  const getLeaveButtonText = (leave: any, action: 'forward' | 'reject') => {
+    const leaveKey = `${leave['Employee Name']}-${leave.Date}`;
+    
+    if (processedLeaves.has(leaveKey)) {
+      return action === 'forward' ? 'Forwarded' : 'Rejected';
+    }
+    
+    if (leave['Team Lead Approval'] === 'Approved' && leave['Leave Status'] === 'Forwarded to HR') {
+      return 'Forwarded';
+    }
+    
+    if (leave['Team Lead Approval'] === 'Rejected') {
+      return 'Rejected';
+    }
+    
+    return action === 'forward' ? 'Forward to HR' : 'Reject';
+  };
+
+  const isLeaveButtonDisabled = (leave: any) => {
+    const leaveKey = `${leave['Employee Name']}-${leave.Date}`;
+    return processedLeaves.has(leaveKey) || 
+           leave['Team Lead Approval'] !== 'Pending' ||
+           leave['Leave Status'] !== 'Pending';
   };
 
   return (
@@ -340,32 +371,43 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {leaveRequests.map((leave, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">{leave['Employee Name']}</p>
-                      <p className="text-sm text-gray-600">
-                        {leave.Reason} • {leave['Leave Dates']}
-                      </p>
-                      <p className="text-sm text-gray-500">Applied on: {leave.Date}</p>
+                {leaveRequests.map((leave, index) => {
+                  const isProcessed = isLeaveButtonDisabled(leave);
+                  
+                  return (
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <p className="font-semibold">{leave['Employee Name']}</p>
+                        <p className="text-sm text-gray-600">
+                          {leave.Reason} • {leave['Leave Dates']}
+                        </p>
+                        <p className="text-sm text-gray-500">Applied on: {leave.Date}</p>
+                        {leave['Team Lead Approval'] !== 'Pending' && (
+                          <Badge variant="outline" className="mt-1">
+                            {leave['Leave Status']}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleRejectLeave(leave)}
+                          disabled={isProcessed}
+                        >
+                          {getLeaveButtonText(leave, 'reject')}
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={() => handleForwardToHR(leave)}
+                          disabled={isProcessed}
+                        >
+                          {getLeaveButtonText(leave, 'forward')}
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleRejectLeave(leave)}
-                      >
-                        Reject
-                      </Button>
-                      <Button 
-                        size="sm"
-                        onClick={() => handleForwardToHR(leave)}
-                      >
-                        Forward to HR
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {leaveRequests.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     No pending leave requests.

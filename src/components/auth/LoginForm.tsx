@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +26,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
     // Team Leads
     'suhas.app@gmail.com': { role: 'Team Lead', name: 'Suhas', department: 'App Development', password: '!@#$%^&*()' },
     'vishnu.frontend@gmail.com': { role: 'Team Lead', name: 'Vishnu', department: 'Frontend', password: '!@#$%^&*()' },
+    'rahil.backend@gmail.com': { role: 'Team Lead', name: 'Rahil', department: 'Backend', password: '!@#$%^&*()' },
     'samatha.cloud@gmail.com': { role: 'Team Lead', name: 'Samatha', department: 'Cloud + DB', password: '!@#$%^&*()' },
     'steev.social@gmail.com': { role: 'Team Lead', name: 'Steev', department: 'Social Media', password: '!@#$%^&*()' },
     
@@ -44,8 +44,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
     
     // Backend Team
     'sowmyabackend@gmail.com': { role: 'Employee', name: 'Sowmya', department: 'Backend', password: '!@#$%^&' },
-    'ravibackend@gmail.com': { role: 'Employee', name: 'Ravi', department: 'Backend', password: '!@#$%^&' },
-    'arjunbackend@gmail.com': { role: 'Employee', name: 'Arjun', department: 'Backend', password: '!@#$%^&' },
+    'rahilbackend@gmail.com': { role: 'Employee', name: 'Rahil', department: 'Backend', password: '!@#$%^&' },
+    'karthikbackend@gmail.com': { role: 'Employee', name: 'Karthik', department: 'Backend', password: '!@#$%^&' },
+    'mounikabackend@gmail.com': { role: 'Employee', name: 'Mounika', department: 'Backend', password: '!@#$%^&' },
+    'adharshbackend@gmail.com': { role: 'Employee', name: 'Adharsh', department: 'Backend', password: '!@#$%^&' },
     
     // Cloud + DB Team
     'mithuncloud@gmail.com': { role: 'Employee', name: 'Mithun', department: 'Cloud + DB', password: '!@#$%^&' },
@@ -76,6 +78,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
       members: [
         { name: 'Suhas (App Dev)', email: 'suhas.app@gmail.com', password: '!@#$%^&*()' },
         { name: 'Vishnu (Frontend)', email: 'vishnu.frontend@gmail.com', password: '!@#$%^&*()' },
+        { name: 'Rahil (Backend)', email: 'rahil.backend@gmail.com', password: '!@#$%^&*()' },
         { name: 'Samatha (Cloud)', email: 'samatha.cloud@gmail.com', password: '!@#$%^&*()' },
         { name: 'Steev (Social)', email: 'steev.social@gmail.com', password: '!@#$%^&*()' }
       ]
@@ -99,8 +102,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
         ],
         'Backend': [
           { name: 'Sowmya', email: 'sowmyabackend@gmail.com', password: '!@#$%^&' },
-          { name: 'Ravi', email: 'ravibackend@gmail.com', password: '!@#$%^&' },
-          { name: 'Arjun', email: 'arjunbackend@gmail.com', password: '!@#$%^&' }
+          { name: 'Rahil', email: 'rahilbackend@gmail.com', password: '!@#$%^&' },
+          { name: 'Karthik', email: 'karthikbackend@gmail.com', password: '!@#$%^&' },
+          { name: 'Mounika', email: 'mounikabackend@gmail.com', password: '!@#$%^&' },
+          { name: 'Adharsh', email: 'adharshbackend@gmail.com', password: '!@#$%^&' }
         ],
         'Cloud + DB': [
           { name: 'Mithun', email: 'mithuncloud@gmail.com', password: '!@#$%^&' },
